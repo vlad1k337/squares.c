@@ -86,8 +86,6 @@ void move_balls(metaballs* balls)
 
 int main()
 {
-    srand(time(0));
-
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "squares");
 
     msq_squares_grid* grid = msq_get_grid(GRID_ROWS, GRID_COLS, MAX_THRESHOLD);

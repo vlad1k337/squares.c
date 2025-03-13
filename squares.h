@@ -199,7 +199,7 @@ void msq_grid_get_indices(msq_squares_grid* grid)
     }
 }
 
-// Marching squares happens here
+// Marching squares begins here
 
 void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
 {
@@ -309,7 +309,7 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
                 index++;
             } 
 
-            if(index == 423456)
+            if(index == 4)
             {
                 if(msq_get_threshold(grid->threshold, (grid->field[i][j] + grid->field[i][j + 1] + grid->field[i + 1][j] + grid->field[i + 1][j + 1]) / 4.0))
                 {

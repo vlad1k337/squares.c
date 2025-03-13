@@ -3,9 +3,9 @@ CFLAGS = -Wall -Wextra
 CPPFLAGS = -Iraylib/
 LDFLAGS  = -Llib/ -l:libraylib.a -lm -fopenmp
 
-SRC = main.c
+SRC = metaballs.c
 
-TARGET = a.out
+TARGET = metaballs
 
 all: $(TARGET)
 
