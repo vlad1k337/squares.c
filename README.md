@@ -4,7 +4,8 @@ Header only Marching Squares algorithm implementation in C
 ![thumbnail](https://github.com/user-attachments/assets/5bc32651-ec5d-4b6f-bf33-f9e972d0013b)
 
 ## Quick Start
-! This implemenation relies on Raylib for displaying an image
+> [!WARNING] 
+> This implemenation relies on ![raylib](https://github.com/raysan5/raylib) for displaying the image
 
 Build and run an example:
 ```console
