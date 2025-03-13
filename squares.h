@@ -1,23 +1,38 @@
-#ifndef __SQUARES_H
-#define __SQUARES_H
+#ifndef MSQ_INCLUDE_SQUARES_H
+#define MSQ_INCLUDE_SQUARES_H
 
-#include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
-#include <time.h>
-
-#ifdef MSQ_USE_OPENMP
-#include <omp.h>
-#endif
+#include "raylib.h"
 
 /* 
+ * Possible vertex positions for isolines
+ *
  * 4 -- 5 -- 6
  * |         |
  * 3         7
  * |         |
  * 2 -- 1 -- 0
  *
+ *
+ * Each bit in 8-bit look-up table represents a vertex position for isoline
+ *
+ * If bit is 1, msq_grid_march() adds a position of new vertex to the array of line vertices
+ * msq_grid_march() then uses this array to draw isolines
+ * 
  */
+
+
+typedef struct {
+    uint32_t rows_count;
+    uint32_t cols_count;
+
+    float** field;
+    uint32_t** binary_index;
+
+    float threshold;
+    float max_threshold;
+} msq_squares_grid;
+
 
 static const uint8_t lut_contours[16] = {
     0b00000000,
@@ -38,18 +53,52 @@ static const uint8_t lut_contours[16] = {
     0b00000000,
 };
 
-typedef struct {
-    uint32_t rows_count;
-    uint32_t cols_count;
 
-    float** field;
-    uint32_t** binary_index;
+msq_squares_grid* msq_grid_create(uint32_t rows_count, uint32_t cols_count, float max_threshold);
 
-    float threshold;
-    float max_threshold;
-} msq_squares_grid;
+void msq_grid_free(msq_squares_grid* grid);
 
-msq_squares_grid* msq_get_grid(uint32_t rows_count, uint32_t cols_count, float max_threshold)
+static inline uint32_t msq_threshold(float threshold, float value);
+
+static inline float msq_lerp(float threshold, float pos_a, float pos_b, float grid_a, float grid_b);
+
+// fills scalar field with random values in range [0, max_threshold]
+void msq_grid_fill_random(msq_squares_grid* grid);
+
+// draws grid lines with circles
+// green circle => value is above threshold
+// red circle   => value is below threshold
+void msq_grid_draw(msq_squares_grid* grid);
+
+// helper function for msq_grid_get_indices
+// converts scalar value to binary index
+static inline uint32_t msq_get_index(msq_squares_grid* grid, uint32_t i, uint32_t j);
+
+// initializes binary indices array for grid
+// must be called before msq_grid_march
+void msq_grid_get_indices(msq_squares_grid* grid);
+
+// draws isolines based on given scalar field
+void msq_grid_march(msq_squares_grid* grid, Color color, float line_width);
+
+
+#endif // MSQ_INCLUDE_SQUARES_H
+
+
+#ifdef MSQ_SQUARES_IMPLEMENTATION
+
+
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+
+// use this flag to parallelize some functions
+#ifdef MSQ_USE_OPENMP
+#include <omp.h>
+#endif // MSQ_USE_OPENMP
+
+
+msq_squares_grid* msq_grid_create(uint32_t rows_count, uint32_t cols_count, float max_threshold)
 {
     msq_squares_grid* grid = malloc(sizeof *grid);
 
@@ -98,7 +147,7 @@ void msq_grid_free(msq_squares_grid* grid)
     grid = NULL;
 }
 
-static inline uint32_t msq_get_threshold(float threshold, float value)
+static inline uint32_t msq_threshold(float threshold, float value)
 {
     return value > threshold ? 1 : 0;
 }
@@ -126,7 +175,7 @@ void msq_grid_fill_random(msq_squares_grid* grid)
     }
 }
 
-void msq_draw_grid(msq_squares_grid* grid)
+void msq_grid_draw(msq_squares_grid* grid)
 {
     int width  = GetScreenWidth();
     int height = GetScreenHeight();
@@ -157,7 +206,7 @@ void msq_draw_grid(msq_squares_grid* grid)
     {
         for(uint32_t j = 0, x_pos = width_halfspacing; j < grid->cols_count; x_pos += width_spacing, ++j)
         {
-            Color circle_color = msq_get_threshold(grid->threshold, grid->field[i][j]) ? RED : GREEN;
+            Color circle_color = msq_threshold(grid->threshold, grid->field[i][j]) ? RED : GREEN;
 
             DrawCircle(x_pos, y_pos, 2, circle_color);
         }
@@ -168,16 +217,16 @@ static inline uint32_t msq_get_index(msq_squares_grid* grid, uint32_t i, uint32_
 {
     uint32_t index = 0;
 
-    index |= msq_get_threshold(grid->threshold, grid->field[i - 1][j]);
+    index |= msq_threshold(grid->threshold, grid->field[i - 1][j]);
     index <<= 1;
 
-    index |= msq_get_threshold(grid->threshold, grid->field[i - 1][j + 1]);
+    index |= msq_threshold(grid->threshold, grid->field[i - 1][j + 1]);
     index <<= 1;
 
-    index |= msq_get_threshold(grid->threshold, grid->field[i][j + 1]);
+    index |= msq_threshold(grid->threshold, grid->field[i][j + 1]);
     index <<= 1;
 
-    index |= msq_get_threshold(grid->threshold, grid->field[i][j]);
+    index |= msq_threshold(grid->threshold, grid->field[i][j]);
 
     return index;
 }
@@ -198,8 +247,6 @@ void msq_grid_get_indices(msq_squares_grid* grid)
         }
     }
 }
-
-// Marching squares begins here
 
 void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
 {
@@ -249,11 +296,12 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
             
             if(lut_contours[lut_index] & 32)
             {
+
 #ifdef MSQ_NO_LERP
                 vertices[index].x = cell_x + width_halfspacing; 
 #else
                 vertices[index].x = msq_lerp(grid->threshold, cell_x, cell_x + width_spacing, grid->field[i][j], grid->field[i][j + 1]); 
-#endif
+#endif 
 
                 vertices[index].y = cell_y;
 
@@ -276,7 +324,7 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
                 vertices[index].y = cell_y + height_halfspacing;
 #else
                 vertices[index].y = msq_lerp(grid->threshold, cell_y, cell_y + height_spacing, grid->field[i][j], grid->field[i + 1][j]);
-#endif
+#endif 
 
                 index++;
             }
@@ -291,11 +339,13 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
 
             if(lut_contours[lut_index] & 2) 
             {
+
 #ifdef MSQ_NO_LERP
                 vertices[index].x = cell_x + width_halfspacing;
 #else
                 vertices[index].x = msq_lerp(grid->threshold, cell_x, cell_x + width_spacing, grid->field[i + 1][j], grid->field[i + 1][j + 1]);
-#endif
+#endif 
+
                 vertices[index].y = cell_y + height_spacing;
 
                 index++;
@@ -311,7 +361,7 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
 
             if(index == 4)
             {
-                if(msq_get_threshold(grid->threshold, (grid->field[i][j] + grid->field[i][j + 1] + grid->field[i + 1][j] + grid->field[i + 1][j + 1]) / 4.0))
+                if(msq_threshold(grid->threshold, (grid->field[i][j] + grid->field[i][j + 1] + grid->field[i + 1][j] + grid->field[i + 1][j + 1]) / 4.0))
                 {
                      DrawLineEx(vertices[0], vertices[3], line_width, color);
                      DrawLineEx(vertices[1], vertices[2], line_width, color); 
@@ -323,26 +373,10 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
                 continue;
             }
 
-            if(lut_index == 5)
-            {
-                DrawLineEx(vertices[0], vertices[3], line_width, color);
-                DrawLineEx(vertices[1], vertices[2], line_width, color);
-
-                continue;
-            } 
-
-            if(lut_index == 10)
-            {
-                DrawLineEx(vertices[0], vertices[1], line_width, color);
-                DrawLineEx(vertices[2], vertices[3], line_width, color);
-                
-                continue;
-            }
-
             DrawLineEx(vertices[0], vertices[1], line_width, color);
         }
     }
 }
 
 
-#endif // __SQUARES_H
+#endif // MSQ_SQUARES_IMPLEMENTATION

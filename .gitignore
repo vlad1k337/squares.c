@@ -6,6 +6,7 @@
 
 # Executables
 *.out
+metaballs
 
 .ccls
 .ccls-cache/
