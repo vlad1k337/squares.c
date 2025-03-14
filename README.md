@@ -7,11 +7,13 @@ Header only Marching Squares algorithm implementation in C
 > [!WARNING] 
 > This implemenation relies on ![raylib](https://github.com/raysan5/raylib) for displaying the image
 
-Build and run an example:
+### Build and run example:
 ```console
 $ make
 $ ./metaballs
 ```
+
+Press <kbd> N </kbd> to re-generate metaballs
 
 ![image](https://github.com/user-attachments/assets/b57161d5-f95c-4e07-b79f-869ab1863932)
 
