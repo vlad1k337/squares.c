@@ -7,11 +7,14 @@ Header only, stb-style Marching Squares algorithm implementation in C
 > [!WARNING] 
 > This implemenation relies on ![raylib](https://github.com/raysan5/raylib) for displaying the image
 
-### Build and run example:
+### Build and run example
+
 ```console
 $ make
 $ ./metaballs
 ```
+
+This examples uses Marching Squares to approximate 2D ![metaballs](https://en.wikipedia.org/wiki/Metaballs)
 
 Press <kbd> N </kbd> to re-generate metaballs
 
