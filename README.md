@@ -14,7 +14,7 @@ $ make
 $ ./metaballs
 ```
 
-This examples uses Marching Squares to approximate 2D ![metaballs](https://en.wikipedia.org/wiki/Metaballs)
+This example uses Marching Squares to approximate 2D ![metaballs](https://en.wikipedia.org/wiki/Metaballs)
 
 Press <kbd> N </kbd> to re-generate metaballs
 
