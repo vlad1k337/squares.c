@@ -87,15 +87,13 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width);
 
 #ifdef MSQ_SQUARES_IMPLEMENTATION
 
-
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 
-// use this flag to parallelize some functions
 #ifdef MSQ_USE_OPENMP
 #include <omp.h>
-#endif // MSQ_USE_OPENMP
+#endif 
 
 
 msq_squares_grid* msq_grid_create(uint32_t rows_count, uint32_t cols_count, float max_threshold)
