@@ -1,5 +1,5 @@
 # Squares.c
-Header only Marching Squares algorithm implementation in C 
+Header only, stb-style Marching Squares algorithm implementation in C 
 
 ![thumbnail](https://github.com/user-attachments/assets/5bc32651-ec5d-4b6f-bf33-f9e972d0013b)
 
