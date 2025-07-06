@@ -275,7 +275,7 @@ void msq_grid_march(msq_squares_grid* grid, Color color, float line_width)
             {
                 vertices[index].x = cell_x + width_spacing;
 
-#ifdef NO_LERP
+#ifdef MSQ_NO_LERP
                 vertices[index].y = cell_y + height_halfspacing;  
 #else
                 vertices[index].y = msq_lerp(grid->threshold, cell_y, cell_y + height_spacing, grid->field[i][j + 1], grid->field[i + 1][j + 1]);
