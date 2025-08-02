@@ -57,7 +57,7 @@ void put_balls(msq_squares_grid* grid, metaballs* balls)
         for(int j = 0; j < grid->cols_count; ++j)
         {
             grid->field[i][j] = 0;
-
+// don't try this at home.
 #if defined(MSQ_USE_OPENMP) && defined(MSQ_FUNNY_BALLS)
     #pragma omp parallel for 
 #endif
